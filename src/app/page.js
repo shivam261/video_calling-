@@ -1,10 +1,10 @@
-
+"use client"
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-
+import {FloatingDock}from "@/components/ui/floatingdock";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -30,7 +30,7 @@ import {
     <><div className="flex flex-row h-screen bg-white ">
       <div className="flex justify-center basis-1/3 pl-4 bg-amber-100 h-screen ">
     <h1 className="">Welcome To Video calling app</h1>
-    
+
       </div>
       <div className=" flex justify-center basis-2/3 bg-amber-50 h-screen ">
       <Tabs defaultValue="account" className=" w-[100%] p-[15%]  ">
@@ -39,7 +39,7 @@ import {
           <TabsTrigger value="password">Sign Up</TabsTrigger>
         </TabsList>
         <TabsContent value="account">
-          <Card className=" shadow-2xl">
+          <Card className=" shadow-2xl ">
             <CardHeader>
               <CardTitle>Login</CardTitle>
               <CardDescription>login detail Description</CardDescription>
