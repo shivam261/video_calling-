@@ -25,10 +25,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
  export default function Home() {
-
+const items=[{title:"chrome",href:"https://www.youtube.com", icon:"safari"},{title:"safari",href:"https://www.youtube.com", icon:"chrone"}]
   return (
     <><div className="flex flex-row h-screen bg-white ">
-      <div className="flex justify-center basis-1/3 pl-4 bg-amber-100 h-screen ">
+      <div className="flex justify-center basis-1/3 pl-4  bg-amber-100 h-screen ">
     <h1 className="">Welcome To Video calling app</h1>
 
       </div>
@@ -56,6 +56,7 @@ import {
             <Link href="/welcome">
             <Button>Login</Button>
             </Link>
+            <FloatingDock items={items} className="mt-10"/>
           </CardFooter>
           </Card>
 
