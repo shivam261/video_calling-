@@ -32,7 +32,7 @@ const items=[{title:"chrome",href:"https://www.youtube.com", icon:"safari"},{tit
     <h1 className="">Welcome To Video calling app</h1>
 
       </div>
-      <div className=" flex justify-center basis-2/3 bg-amber-50 h-screen ">
+      <div className=" flex justify-center basis-2/3 bg-amber-50 h-screen  ">
       <Tabs defaultValue="account" className=" w-[100%] p-[15%]  ">
         <TabsList className="ml-[35%]">
           <TabsTrigger value="account">Login</TabsTrigger>

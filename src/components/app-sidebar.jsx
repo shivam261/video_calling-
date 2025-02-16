@@ -10,7 +10,10 @@ import {
     SidebarMenuItem,
     SidebarHeader,
   } from "@/components/ui/sidebar"
+  import Link from "next/link";
+  import { Button } from "./ui/button";
   import { Calendar, Home, Inbox, Search, Settings,LogOut } from "lucide-react";
+  
   const items = [
     {
       title: "Home",
@@ -40,13 +43,13 @@ import {
     ,
     {
       title: "Log Out",
-      url: "#",
+      url: "/",
       icon: LogOut,
     }
   ]
   export function AppSidebar() {
     return (
-      <Sidebar>
+      <Sidebar className="bg-slate-400 ">
         <SidebarHeader>Navigation Bar</SidebarHeader>
         <SidebarContent>
           <SidebarGroup />
@@ -60,9 +63,11 @@ import {
                       <item.icon />
                       <span>{item.title}</span>
                     </a>
+                    
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            
             </SidebarMenu>
           </SidebarGroupContent>
           <SidebarGroup />
