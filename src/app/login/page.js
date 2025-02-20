@@ -24,15 +24,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
-
-const items = [
-  { title: "Chrome", href: "https://www.youtube.com", icon: "safari" },
-  { title: "Safari", href: "https://www.youtube.com", icon: "chrome" },
-];
-
- export default function Home() {  
-
+ export default function Home() {
+const items=[{title:"chrome",href:"https://www.youtube.com", icon:"safari"},{title:"safari",href:"https://www.youtube.com", icon:"chrone"}]
   return (
     <><div className="flex flex-row h-screen bg-white ">
       <div className="flex justify-center basis-1/3 pl-4  bg-amber-100 h-screen ">

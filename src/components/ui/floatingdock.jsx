@@ -50,7 +50,7 @@ const FloatingDockMobile = ({
                   href={item.href}
                   key={item.title}
                   className="h-10 w-10 rounded-full bg-gray-50 dark:bg-neutral-900 flex items-center justify-center">
-                  <div className="h-4 w-4">{item.icon}</div>
+                  <div className="h-4 w-4"><item.Icon></item.Icon></div>
                 </Link>
               </motion.div>
             ))}
@@ -89,7 +89,7 @@ const FloatingDockDesktop = ({
 function IconContainer({
   mouseX,
   title,
-  icon,
+  Icon,
   href
 }) {
   let ref = useRef(null);
@@ -152,7 +152,7 @@ function IconContainer({
         <motion.div
           style={{ width: widthIcon, height: heightIcon }}
           className="flex items-center justify-center">
-          {icon}
+          {<Icon/>}
         </motion.div>
       </motion.div>
     </Link>)
