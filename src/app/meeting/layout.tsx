@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
-
+import { SocketProvider } from "@/providers/socket";
+import { PeerProvider } from "@/providers/Peer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,7 +25,12 @@ interface RootLayoutProps {
 const l: React.FC<RootLayoutProps> = ({ children }) => {
   return (
     <div className={`${geistSans.variable} ${geistMono.variable} antialiased bg-amber-50`}>
+      
+      <SocketProvider>
+        <PeerProvider>
       {children}
+      </PeerProvider>
+      </SocketProvider>
     </div>
   );
 };

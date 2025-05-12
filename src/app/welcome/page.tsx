@@ -1,6 +1,6 @@
 "use client"
 import { FC } from "react";
-import Image from "next/image";
+//import Image from "next/image";
 
 import { HomeCard } from "@/customComponents/Homecards";
 import { Plus, Folder, FileText } from "lucide-react";

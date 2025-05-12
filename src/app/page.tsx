@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -22,12 +22,13 @@ interface DockItem {
   icon: string;
 }
 
-const items: DockItem[] = [
+/* const items: DockItem[] = [
   { title: "Chrome", href: "https://www.youtube.com", icon: "safari" },
   { title: "Safari", href: "https://www.youtube.com", icon: "chrome" },
-];
+]; */
 
 export default function Home() {
+  
   return (
     <div className="flex flex-row h-screen bg-white">
       <div className="flex justify-center basis-1/3 pl-4 bg-amber-100 h-screen">

@@ -11,7 +11,7 @@ interface HomeCardProps {
 
 export const HomeCard: React.FC<HomeCardProps> = ({ icon: Icon, description, topic, link = "/" }) => {
   return (
-    <Link href={link}>
+    <Link href={link} >
       <Card className="bg-red-400 w-full">
         <CardHeader>
           <CardTitle>
