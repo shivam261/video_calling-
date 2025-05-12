@@ -8,10 +8,12 @@ interface PeerContextType {
   sendStream: (stream: MediaStream) => Promise<void>;
   remoteStream: MediaStream | null;
 }
+interface PeerProviderProps {
+  children: React.ReactNode;
+}
+const PeerContext = createContext<PeerContextType | null>(null);
 
-const PeerContext = createContext<any>(null);
-
-export const usePeer = () => {
+export const usePeer = (): PeerContextType => {
   const peer = useContext(PeerContext);
   if (!peer) {
     throw new Error("usePeer must be used within a PeerProvider");
@@ -20,9 +22,9 @@ export const usePeer = () => {
 };
 
 
-export const PeerProvider = ({ children }: any) => {
+export const PeerProvider = ({ children }: PeerProviderProps) => {
   const [peer, setPeer] = useState<RTCPeerConnection | null>(null);
-const [remoteStream, setRemoteStream] = useState<any>(null);
+const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
   useEffect(() => {
     if (typeof window !== "undefined") {
       const newPeer = new RTCPeerConnection({
@@ -38,7 +40,7 @@ const [remoteStream, setRemoteStream] = useState<any>(null);
       setPeer(newPeer);
     }
   }, []);
-  const handleTrackEvent=useCallback((ev:any)=>{
+  const handleTrackEvent=useCallback((ev:RTCTrackEvent)=>{
     const streams=ev.streams;
     setRemoteStream(streams[0]);
   },[])
@@ -88,13 +90,13 @@ useEffect(() => {
   return answer;
 };
 
-const sendStream=async(stream:any)=>{
+const sendStream=async(stream:MediaStream)=>{
     const tracks=stream.getTracks();
     for (const track of tracks) {
         peer?.addTrack(track,stream);
     }   
 };
-  const setRemoteAnswer = async (ans: any) => {
+  const setRemoteAnswer = async (ans: RTCSessionDescriptionInit) => {
     if (!peer) return;
     await peer.setRemoteDescription(ans);
   };

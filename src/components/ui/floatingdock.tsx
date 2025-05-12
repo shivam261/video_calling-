@@ -1,11 +1,24 @@
 import { cn } from "@/lib/utils";
 import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
-import { AnimatePresence, motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  MotionValue
+} from "framer-motion";
 import Link from "next/link";
 import { useRef, useState } from "react";
 
+interface DockItem {
+  title: string;
+  href: string;
+  Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+}
+
 interface FloatingDockProps {
-  items: Array<{ title: string; href: string; Icon: React.ComponentType<any> }>;
+  items: DockItem[];
   desktopClassName?: string;
   mobileClassName?: string;
 }
@@ -24,7 +37,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
 };
 
 interface FloatingDockMobileProps {
-  items: Array<{ title: string; href: string; Icon: React.ComponentType<any> }>;
+  items: DockItem[];
   className?: string;
 }
 
@@ -46,26 +59,20 @@ const FloatingDockMobile: React.FC<FloatingDockMobileProps> = ({
               <motion.div
                 key={item.title}
                 initial={{ opacity: 0, y: 10 }}
-                animate={{
-                  opacity: 1,
-                  y: 0,
-                }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{
                   opacity: 0,
                   y: 10,
-                  transition: {
-                    delay: idx * 0.05,
-                  },
+                  transition: { delay: idx * 0.05 },
                 }}
                 transition={{ delay: (items.length - 1 - idx) * 0.05 }}
               >
                 <Link
                   href={item.href}
-                  key={item.title}
                   className="h-10 w-10 rounded-full bg-gray-50 dark:bg-neutral-900 flex items-center justify-center"
                 >
                   <div className="h-4 w-4">
-                    <item.Icon />
+                    <item.Icon className="w-full h-full" />
                   </div>
                 </Link>
               </motion.div>
@@ -84,7 +91,7 @@ const FloatingDockMobile: React.FC<FloatingDockMobileProps> = ({
 };
 
 interface FloatingDockDesktopProps {
-  items: Array<{ title: string; href: string; Icon: React.ComponentType<any> }>;
+  items: DockItem[];
   className?: string;
 }
 
@@ -92,29 +99,26 @@ const FloatingDockDesktop: React.FC<FloatingDockDesktopProps> = ({
   items,
   className
 }) => {
-  let mouseX = useMotionValue(Infinity);
+  const mouseX = useMotionValue(Infinity);
 
   return (
     <motion.div
       onMouseMove={(e) => mouseX.set(e.pageX)}
       onMouseLeave={() => mouseX.set(Infinity)}
       className={cn(
-        "mx-auto hidden md:flex h-16 gap-4 items-end  rounded-2xl bg-gray-50 dark:bg-neutral-900 px-4 pb-3",
+        "mx-auto hidden md:flex h-16 gap-4 items-end rounded-2xl bg-gray-50 dark:bg-neutral-900 px-4 pb-3",
         className
       )}
     >
       {items.map((item) => (
-        <IconContainer mouseX={mouseX} key={item.title} {...item} />
+        <IconContainer key={item.title} mouseX={mouseX} {...item} />
       ))}
     </motion.div>
   );
 };
 
-interface IconContainerProps {
-  mouseX: any;
-  title: string;
-  Icon: React.ComponentType<any>;
-  href: string;
+interface IconContainerProps extends DockItem {
+  mouseX: MotionValue<number>;
 }
 
 const IconContainer: React.FC<IconContainerProps> = ({
@@ -123,39 +127,34 @@ const IconContainer: React.FC<IconContainerProps> = ({
   Icon,
   href
 }) => {
-  let ref = useRef<HTMLDivElement | null>(null);
+  const ref = useRef<HTMLDivElement | null>(null);
 
-  let distance = useTransform(mouseX, (val:any) => {
-    let bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
+  const distance = useTransform(mouseX, (val) => {
+    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
     return val - bounds.x - bounds.width / 2;
   });
-  let widthTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
-  let heightTransform = useTransform(distance, [-150, 0, 150], [40, 80, 40]);
 
-  let widthTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
-  let heightTransformIcon = useTransform(distance, [-150, 0, 150], [20, 40, 20]);
-
-  let width = useSpring(widthTransform, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
-  });
-  let height = useSpring(heightTransform, {
+  const width = useSpring(useTransform(distance, [-150, 0, 150], [40, 80, 40]), {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
   });
 
-  let widthIcon = useSpring(widthTransformIcon, {
+  const height = useSpring(useTransform(distance, [-150, 0, 150], [40, 80, 40]), {
     mass: 0.1,
     stiffness: 150,
     damping: 12,
   });
-  let heightIcon = useSpring(heightTransformIcon, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
-  });
+
+  const widthIcon = useSpring(
+    useTransform(distance, [-150, 0, 150], [20, 40, 20]),
+    { mass: 0.1, stiffness: 150, damping: 12 }
+  );
+
+  const heightIcon = useSpring(
+    useTransform(distance, [-150, 0, 150], [20, 40, 20]),
+    { mass: 0.1, stiffness: 150, damping: 12 }
+  );
 
   const [hovered, setHovered] = useState(false);
 
@@ -184,7 +183,7 @@ const IconContainer: React.FC<IconContainerProps> = ({
           style={{ width: widthIcon, height: heightIcon }}
           className="flex items-center justify-center"
         >
-          <Icon />
+          <Icon className="w-full h-full" />
         </motion.div>
       </motion.div>
     </Link>

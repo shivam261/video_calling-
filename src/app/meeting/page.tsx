@@ -10,20 +10,20 @@ import { usePeer } from "@/providers/Peer";
 
 export default function Meeting() {
   const items=[{title:"Mic",href:"https://www.youtube.com", Icon:Mic},{title:"Video",href:"https://www.youtube.com", Icon:Video},{title:"Subtitles",href:"https://www.youtube.com", Icon:Subtitles},{title:"More details",href:"https://www.youtube.com", Icon:MoreVertical},{title:"Exit",href:"https://www.youtube.com", Icon:LogOut}]
-  const [myStream,setMyStream]=useState<any>();
-  const [remoteEmailId,setRemoteEmailId]=useState<any>();
+  const [myStream,setMyStream]=useState<MediaStream | null>(null);
+  const [remoteEmailId,setRemoteEmailId]=useState<string>("");
   const socket = useSocket();
-  const {peer,createOffer,createAnswer,setRemoteAnswer,sendStream,remoteStream} = usePeer();
-  const [email, setEmail] = useState<any>();
-  const [roomId, setRoomId] = useState<any>();
-  useEffect(() => {
+  const {createOffer,createAnswer,setRemoteAnswer,sendStream,remoteStream} = usePeer();
+  const [email, setEmail] = useState<string>();
+  const [roomId, setRoomId] = useState<string>();
+ /*  useEffect(() => {
     
-  },[]);
+  },[]); */
   // handle incoming call
   // this function will be called when a user receives a call
   // it will set the remote description and create an answer
   // and send the answer to the caller
-const handleIncomingCall=useCallback(async (data:any)=>{
+const handleIncomingCall=useCallback(async (data:{ offer: RTCSessionDescriptionInit; from: string })=>{
   const {offer,from}=data;
   console.log("incoming call from ",from ,offer);
   const ans= await createAnswer(offer);
@@ -33,7 +33,7 @@ const handleIncomingCall=useCallback(async (data:any)=>{
 },[createAnswer,socket]);
   // function to handle new user joined event
   // this function will be called when a new user joins the room
- const handleNewUserJoined=useCallback(async (data:any)=>{
+ const handleNewUserJoined=useCallback(async (data:{ emailId: string })=>{
     const {emailId}=data;
     console.log("new-user-joined",data);
     const offer= await createOffer();
@@ -45,7 +45,7 @@ const handleIncomingCall=useCallback(async (data:any)=>{
  // this function will be called when the call is accepted
  // it will set the remote description
  // and add the local stream to the peer connection
- const handleCallAccepted=useCallback(async (data:any)=>{
+ const handleCallAccepted=useCallback(async (data:{ ans: RTCSessionDescriptionInit })=>{
   const {ans}=data;
   console.log("call-accepted",data);
   await setRemoteAnswer(ans);
@@ -123,7 +123,7 @@ const getUserMediaStream=useCallback(async ()=>{
             <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"/>
             Your browser does not support the video tag.
         </video> */}
-        
+        <div className="flex flex-row gap-4 absolute top-2 inset-x-1/3">
         <video
           ref={(video) => {
     if (video && myStream) {
@@ -135,6 +135,7 @@ const getUserMediaStream=useCallback(async ()=>{
   playsInline
   className="w-[100%] h-[100%] rounded-lg transform scale-x-[-1]"
         />
+
         <video
           ref={(video) => {
     if (video && remoteStream) {
@@ -146,6 +147,8 @@ const getUserMediaStream=useCallback(async ()=>{
   playsInline
   className="w-[100%] h-[100%] rounded-lg transform scale-x-[-1]"
         />
+        </div>
+       
         <div className="absolute bottom-2 inset-x-1/3">
         
         <div className=" flex flex-row w-full">

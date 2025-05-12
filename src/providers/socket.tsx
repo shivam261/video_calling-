@@ -15,7 +15,7 @@ export const useSocket=()=>{
 export const SocketProvider=({children}:{children:React.ReactNode})=>{
    const socket= useMemo(()=>{
 
-        return io(`http://192.168.202.32:8001`);
+        return io(`http://localhost:8001`);
 
    },[])
     return(
