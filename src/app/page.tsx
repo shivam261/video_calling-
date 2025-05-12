@@ -16,12 +16,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-interface DockItem {
+/* interface DockItem {
   title: string;
   href: string;
   icon: string;
 }
-
+ */
 /* const items: DockItem[] = [
   { title: "Chrome", href: "https://www.youtube.com", icon: "safari" },
   { title: "Safari", href: "https://www.youtube.com", icon: "chrome" },

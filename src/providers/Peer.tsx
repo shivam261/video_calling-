@@ -51,7 +51,7 @@ useEffect(() => {
     return () => {  
       peer?.removeEventListener('track', handleTrackEvent);
     }
-},[peer]);
+},[peer,handleTrackEvent]);
 
 
   const createOffer = async () => {
