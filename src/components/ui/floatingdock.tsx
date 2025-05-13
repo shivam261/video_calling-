@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Mic, Video, LogOut, MoreVertical, Subtitles ,Play,Pause} from "lucide-react";
+import { Mic, Video, Subtitles ,Play,Pause} from "lucide-react";
 import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
 import { useTranscription } from "@/providers/Transcription";
 import { Button } from "./button";

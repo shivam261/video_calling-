@@ -1,7 +1,7 @@
 "use client"
 
 import { FloatingDock } from "@/components/ui/floatingdock";
-import { Mic, Video, LogOut, MoreVertical, Subtitles ,Play,Pause} from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSocket } from "@/providers/socket";
