@@ -1,5 +1,8 @@
 import { cn } from "@/lib/utils";
+import { Mic, Video, LogOut, MoreVertical, Subtitles ,Play,Pause} from "lucide-react";
 import { IconLayoutNavbarCollapse } from "@tabler/icons-react";
+import { useTranscription } from "@/providers/Transcription";
+import { Button } from "./button";
 import {
   AnimatePresence,
   motion,
@@ -15,19 +18,29 @@ interface DockItem {
   title: string;
   href: string;
   Icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+  onClick?: () => void;
 }
-
 interface FloatingDockProps {
-  items: DockItem[];
+
   desktopClassName?: string;
   mobileClassName?: string;
 }
 
 export const FloatingDock: React.FC<FloatingDockProps> = ({
-  items,
   desktopClassName,
   mobileClassName
 }) => {
+
+  const { startTranscription, stopTranscription } = useTranscription();
+  
+const items = [
+  { title: "Mic", href: "#", Icon: Mic },
+  { title: "Video", href: "#", Icon: Video },
+  { title: "Subtitles", href: "#", Icon: Subtitles },
+  { title: "Start Subtitles", href: "#", Icon: Play, onClick: startTranscription },
+  { title: "Stop", href: "#", Icon: Pause, onClick: stopTranscription },
+];
+
   return (
     <>
       <FloatingDockDesktop items={items} className={desktopClassName} />
@@ -46,9 +59,10 @@ const FloatingDockMobile: React.FC<FloatingDockMobileProps> = ({
   className
 }) => {
   const [open, setOpen] = useState(false);
-
+ 
   return (
     <div className={cn("relative block md:hidden", className)}>
+   
       <AnimatePresence>
         {open && (
           <motion.div
@@ -67,14 +81,15 @@ const FloatingDockMobile: React.FC<FloatingDockMobileProps> = ({
                 }}
                 transition={{ delay: (items.length - 1 - idx) * 0.05 }}
               >
-                <Link
-                  href={item.href}
+                <Button
+
                   className="h-10 w-10 rounded-full bg-gray-50 dark:bg-neutral-900 flex items-center justify-center"
+                  onClick={item.onClick}
                 >
                   <div className="h-4 w-4">
                     <item.Icon className="w-full h-full" />
                   </div>
-                </Link>
+                </Button>
               </motion.div>
             ))}
           </motion.div>
@@ -125,7 +140,8 @@ const IconContainer: React.FC<IconContainerProps> = ({
   mouseX,
   title,
   Icon,
-  href
+  href,
+  onClick
 }) => {
   const ref = useRef<HTMLDivElement | null>(null);
 
@@ -165,6 +181,7 @@ const IconContainer: React.FC<IconContainerProps> = ({
         style={{ width, height }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        onClick={onClick}
         className="aspect-square rounded-full bg-gray-200 dark:bg-neutral-800 flex items-center justify-center relative"
       >
         <AnimatePresence>

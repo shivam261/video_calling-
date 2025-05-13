@@ -1,21 +1,14 @@
 "use client"
 
 import { FloatingDock } from "@/components/ui/floatingdock";
-import { Mic, Video, LogOut, MoreVertical, Subtitles } from "lucide-react";
+import { Mic, Video, LogOut, MoreVertical, Subtitles ,Play,Pause} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSocket } from "@/providers/socket";
 import { usePeer } from "@/providers/Peer";
+import { useTranscription } from "@/providers/Transcription";
 
 export default function Meeting() {
-  const items = [
-    { title: "Mic", href: "#", Icon: Mic },
-    { title: "Video", href: "#", Icon: Video },
-    { title: "Subtitles", href: "#", Icon: Subtitles },
-    { title: "More details", href: "#", Icon: MoreVertical },
-    { title: "Exit", href: "#", Icon: LogOut }
-  ];
-
   const [myStream, setMyStream] = useState<MediaStream | null>(null);
   const [remoteEmailId, setRemoteEmailId] = useState<string>("");
   const socket = useSocket();
@@ -24,69 +17,9 @@ export default function Meeting() {
   const [roomId, setRoomId] = useState<string>();
 
   // VOSK transcription state
-  const [status, setStatus] = useState("Press Start");
-  const [transcripts, setTranscripts] = useState<string[]>([]);
-  const [partial, setPartial] = useState("");
-
-  const voskPcRef = useRef<RTCPeerConnection | null>(null);
-  const voskDcRef = useRef<RTCDataChannel | null>(null);
+  const { transcripts, status, partial } = useTranscription();
 
   // === VOSK SETUP ===
-  const startTranscription = async () => {
-    setStatus("Connecting to Vosk...");
-    const pc = new RTCPeerConnection({ sdpSemantics: "unified-plan" });
-    voskPcRef.current = pc;
-
-    const dc = pc.createDataChannel("result");
-    voskDcRef.current = dc;
-
-    dc.onmessage = (e) => {
-      setStatus("Listening...");
-      try {
-        const data = JSON.parse(e.data);
-        if (data.text) {
-          setTranscripts(prev => [...prev, data.text]);
-          setPartial("");
-        } else if (data.partial) {
-          setPartial(data.partial);
-        }
-      } catch (err) {
-        console.error("Vosk JSON error", err);
-      }
-    };
-
-    const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-    audioStream.getTracks().forEach(track => pc.addTrack(track, audioStream));
-
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-
-    await new Promise((resolve) => {
-      if (pc.iceGatheringState === "complete") return resolve(null);
-      pc.onicegatheringstatechange = () => {
-        if (pc.iceGatheringState === "complete") resolve(null);
-      };
-    });
-
-    const response = await fetch("http://localhost:2700/offer", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(pc.localDescription),
-    });
-
-    const answer = await response.json();
-    await pc.setRemoteDescription(answer);
-  };
-
-  const stopTranscription = () => {
-    voskDcRef.current?.close();
-    voskPcRef.current?.getSenders().forEach(sender => sender.track?.stop());
-    voskPcRef.current?.close();
-    voskDcRef.current = null;
-    voskPcRef.current = null;
-    setStatus("Press Start");
-  };
-
   const handleIncomingCall = useCallback(async (data: { offer: RTCSessionDescriptionInit; from: string }) => {
     const { offer, from } = data;
     const ans = await createAnswer(offer);
@@ -134,6 +67,16 @@ export default function Meeting() {
     if (email && roomId) socket.emit("join-room", { emailId: email, roomId });
   };
 
+  // Reference for the transcription container
+  const transcriptionContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Scroll to bottom whenever transcripts or partial updates
+  useEffect(() => {
+    if (transcriptionContainerRef.current) {
+      transcriptionContainerRef.current.scrollTop = transcriptionContainerRef.current.scrollHeight;
+    }
+  }, [transcripts, partial]);
+
   return (
     <div className="h-screen w-screen p-5">
       <div className="flex flex-row gap-4 mb-3">
@@ -160,21 +103,20 @@ export default function Meeting() {
 
         <div className="absolute bottom-2 inset-x-1/3">
           <div className="flex flex-row w-full justify-between items-center space-x-4">
-            <FloatingDock items={items} />
-            <div className="space-x-2">
-              <Button onClick={startTranscription} className="bg-green-600 text-white px-3">Start Subtitles</Button>
-              <Button onClick={stopTranscription} className="bg-red-600 text-white px-3">Stop</Button>
-            </div>
+            <FloatingDock  />
           </div>
         </div>
 
         <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-80 p-4 rounded-xl w-1/2 shadow">
           <div className="text-gray-700 text-sm mb-2 font-semibold">{status}</div>
-          <div className="text-black text-base font-mono whitespace-pre-wrap max-h-32 overflow-y-auto">
+          <div 
+            ref={transcriptionContainerRef} 
+            className="text-black text-base font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
+          >
             {transcripts.map((line, idx) => (
               <div key={idx}>{line}</div>
             ))}
-            {partial && <div className="italic text-gray-500">> {partial}</div>}
+            {partial && <div className="italic text-gray-500"> {partial}</div>}
           </div>
         </div>
       </div>

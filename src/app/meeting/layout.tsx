@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SocketProvider } from "@/providers/socket";
 import { PeerProvider } from "@/providers/Peer";
+import { TranscriptionProvider } from "@/providers/Transcription";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,7 +29,10 @@ const l: React.FC<RootLayoutProps> = ({ children }) => {
       
       <SocketProvider>
         <PeerProvider>
+        <TranscriptionProvider>
+
       {children}
+        </TranscriptionProvider>
       </PeerProvider>
       </SocketProvider>
     </div>
