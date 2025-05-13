@@ -12,7 +12,7 @@
 
 # testing
 /coverage
-/public/SignFiles
+/public/jas
 # next.js
 /.next/
 /out/
