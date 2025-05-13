@@ -66,7 +66,33 @@ export default function Meeting() {
   const handleJoinRoom = () => {
     if (email && roomId) socket.emit("join-room", { emailId: email, roomId });
   };
+  const fetchSigmlAndPlay = async (word: string) => {
+  const response = await fetch(`/SignFiles/${word}.sigml`);
+  const sigmlText = await response.text();
 
+  const iframe = document.getElementById('sigmlPlayer') as HTMLIFrameElement;
+  iframe?.contentWindow?.postMessage({
+    type: 'PLAY_SIGML',
+    payload: `/SignFiles/${word}.sigml`
+  }, '*');
+};
+useEffect(() => {
+  const observer = new MutationObserver((mutationsList) => {
+    for (const mutation of mutationsList) {
+      const newText = mutation.target.textContent;
+      const lastWord = newText?.trim().split(' ').pop();
+      if (lastWord) {
+        fetchSigmlAndPlay(lastWord);
+      }
+    }
+  });
+
+  if (transcriptionContainerRef.current) {
+    observer.observe(transcriptionContainerRef.current, { childList: true, subtree: true, characterData: true });
+  }
+
+  return () => observer.disconnect();
+}, []);
   // Reference for the transcription container
   const transcriptionContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -76,6 +102,20 @@ export default function Meeting() {
       transcriptionContainerRef.current.scrollTop = transcriptionContainerRef.current.scrollHeight;
     }
   }, [transcripts, partial]);
+
+  // web speech api for text to speech 
+  useEffect(() => {
+  const timeout = setTimeout(() => {
+    if (partial) {
+      const utterance = new SpeechSynthesisUtterance(partial);
+      utterance.lang = "en-US";
+      speechSynthesis.cancel();
+      speechSynthesis.speak(utterance);
+    }
+  }, 700); // speak only if partial hasn't changed for 300ms
+
+  return () => clearTimeout(timeout);
+}, [partial]);
 
   return (
     <div className="h-screen w-screen p-5">
@@ -88,17 +128,27 @@ export default function Meeting() {
       <h4>You are now connected to {remoteEmailId}</h4>
 
       <div className="relative w-full h-full bg-red-300">
-        <div className="flex flex-row gap-4 absolute top-2 inset-x-1/3">
+        <div className="flex flex-row gap-4 absolute top-2 inset-x-[10%]">
           <video
             ref={video => { if (video && myStream) video.srcObject = myStream; }}
             autoPlay muted playsInline
-            className="w-[100%] h-[100%] rounded-lg transform scale-x-[-1]"
+            className="w-[35%] h-[10%] rounded-lg transform scale-x-[-1]"
           />
           <video
             ref={video => { if (video && remoteStream) video.srcObject = remoteStream; }}
             autoPlay playsInline
-            className="w-[100%] h-[100%] rounded-lg transform scale-x-[-1]"
+            className="w-[35%] h-[10%] rounded-lg transform scale-x-[-1]"
           />
+           <div className="rounded-lg border " style={{ width: '700px', height: '500px' }}>
+  <iframe
+    id="sigmlPlayer"
+    src="/index.html"
+    title="Sign Language Player"
+    className="scale-[0.91] origin-top-left w-[100%] h-[100%]"
+    style={{ transform: 'scale(0.91)', transformOrigin: 'bottom left' }}
+    allowFullScreen
+  ></iframe>
+</div>
         </div>
 
         <div className="absolute bottom-2 inset-x-1/3">
@@ -106,8 +156,10 @@ export default function Meeting() {
             <FloatingDock  />
           </div>
         </div>
-
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white bg-opacity-80 p-4 rounded-xl w-1/2 shadow">
+<div className="flex flex-row justify-center items-center">
+          <div className="absolute bottom-20 left-[35%] transform -translate-x-1/2 bg-white bg-opacity-80 p-4 rounded-xl w-1/4 shadow">
+       
+          <div className="">
           <div className="text-gray-700 text-sm mb-2 font-semibold">{status}</div>
           <div 
             ref={transcriptionContainerRef} 
@@ -118,7 +170,28 @@ export default function Meeting() {
             ))}
             {partial && <div className="italic text-gray-500"> {partial}</div>}
           </div>
+
+          </div>
+
         </div>
+             <div className="absolute bottom-20  left-[65%] transform -translate-x-1/2 bg-white bg-opacity-80 p-4 rounded-xl w-1/4 shadow">
+       
+          <div className="">
+          <div className="text-gray-700 text-sm mb-2 font-semibold">{status}</div>
+          <div 
+            ref={transcriptionContainerRef} 
+           className="text-black text-base font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
+>
+            {transcripts.map((line, idx) => (
+              <div key={idx}>{line}</div>
+           ))}
+            {partial && <div className="italic text-gray-500">{partial}</div>}
+          </div>
+
+          </div>
+
+        </div>
+</div>
       </div>
     </div>
   );
