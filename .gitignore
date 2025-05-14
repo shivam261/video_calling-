@@ -12,7 +12,7 @@
 
 # testing
 /coverage
-/public
+/public/jas
 # next.js
 /.next/
 /out/
