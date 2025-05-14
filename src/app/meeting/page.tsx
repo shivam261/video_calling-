@@ -1,5 +1,5 @@
 "use client"
-
+import {lemmatizer} from "lemmatizer";
 import { FloatingDock } from "@/components/ui/floatingdock";
 
 import { Button } from "@/components/ui/button";
@@ -37,17 +37,39 @@ export default function Meeting() {
   const handleCallAccepted = useCallback(async (data: { ans: RTCSessionDescriptionInit }) => {
     await setRemoteAnswer(data.ans);
   }, [setRemoteAnswer]);
+const [audiodescription, setAudiodescription] = useState<string[]>([]);
+  useEffect(() => {
+  socket.on("textreceived", (data: { text:string[]  }) => {
+    console.log("Received text:", data.text);
+    setAudiodescription(data.text);
+  });
 
+  return () => {
+    socket.off("textreceived");
+  };
+}, [socket]);
+
+    useEffect(()=>{
+    socket.emit("textsent",{
+    text: transcripts,
+    roomId: roomId,
+    emailId :email  // replace with actual variable if dynamic
+  })
+    
+  },[transcripts])
+  
   useEffect(() => {
     socket.on("user-joined", handleNewUserJoined);
     socket.on("incoming-call", handleIncomingCall);
     socket.on("call-accepted", handleCallAccepted);
     socket.on("joined-room", () => console.log("joined-room"));
+   
     return () => {
       socket.off("user-joined", handleNewUserJoined);
       socket.off("incoming-call", handleIncomingCall);
       socket.off("call-accepted", handleCallAccepted);
       socket.off("joined-room");
+
     };
   }, [socket, handleIncomingCall, handleNewUserJoined, handleCallAccepted]);
 
@@ -67,14 +89,16 @@ export default function Meeting() {
     if (email && roomId) socket.emit("join-room", { emailId: email, roomId });
   };
   const fetchSigmlAndPlay = async (word: string) => {
-  const response = await fetch(`/SignFiles/${word}.sigml`);
-  const sigmlText = await response.text();
+
+
 
   const iframe = document.getElementById('sigmlPlayer') as HTMLIFrameElement;
-  iframe?.contentWindow?.postMessage({
-    type: 'PLAY_SIGML',
-    payload: `/SignFiles/${word}.sigml`
-  }, '*');
+  setTimeout(() => {
+    iframe?.contentWindow?.postMessage({
+      type: 'PLAY_SIGML',
+      payload: `/SignFiles/${lemmatizer(word.toLowerCase())}.sigml`
+    }, '*');
+  }, 3000); 
 };
 useEffect(() => {
   const observer = new MutationObserver((mutationsList) => {
@@ -116,16 +140,54 @@ useEffect(() => {
 
   return () => clearTimeout(timeout);
 }, [partial]);
+const [pred, setPred] = useState<string>("");
+  const remoteVideoRef = useRef<HTMLVideoElement | null>(null);
+const sendFrameToAPI = useCallback(() => {
+  const video = remoteVideoRef.current;
+  if (!video) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
+
+  fetch(`http://${process.env.NEXT_PUBLIC_BASE_URL}:5001/predict/test_user`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ frame: base64Image })
+  })
+    .then(res => res.json())
+    .then(data => {
+      setPred(data.text);
+      console.log('Predicted:', data.text);
+      // Optional: Update a state or UI element with `data.text`
+    })
+    .catch(err => {
+      console.error('API error:', err);
+    });
+}, []);
+useEffect(() => {
+  const interval = setInterval(() => {
+    sendFrameToAPI();
+  }, 50); // Every 3 seconds
+
+  return () => clearInterval(interval); // Cleanup on unmount
+}, [sendFrameToAPI]);
 
   return (
     <div className="h-screen w-screen p-5">
       <div className="flex flex-row gap-4 mb-3">
+
         <input value={email} onChange={handleEmailChange} type="email" className="w-full h-10 rounded-lg bg-gray-200 p-2" placeholder="Enter your email" />
         <input value={roomId} onChange={handleRoomIdChange} type="text" className="w-full h-10 rounded-lg bg-gray-200 p-2" placeholder="Enter room code" />
         <Button onClick={handleJoinRoom} className="h-10 w-20 bg-blue-500 rounded-lg hover:bg-blue-600">Enter Room</Button>
       </div>
 
-      <h4>You are now connected to {remoteEmailId}</h4>
+      <h4>You are now connected to {remoteEmailId} saying {audiodescription}</h4>
 
       <div className="relative w-full h-full bg-red-300">
         <div className="flex flex-row gap-4 absolute top-2 inset-x-[10%]">
@@ -135,7 +197,14 @@ useEffect(() => {
             className="w-[35%] h-[10%] rounded-lg transform scale-x-[-1]"
           />
           <video
-            ref={video => { if (video && remoteStream) video.srcObject = remoteStream; }}
+            ref={video => { if (video && remoteStream) {
+
+              video.srcObject = remoteStream;
+              remoteVideoRef.current = video;
+            }
+              
+            
+            }}
             autoPlay playsInline
             className="w-[35%] h-[10%] rounded-lg transform scale-x-[-1]"
           />
@@ -160,17 +229,17 @@ useEffect(() => {
           <div className="absolute bottom-20 left-[35%] transform -translate-x-1/2 bg-white bg-opacity-80 p-4 rounded-xl w-1/4 shadow">
        
           <div className="">
-          <div className="text-gray-700 text-sm mb-2 font-semibold">{status}</div>
-          <div 
-            ref={transcriptionContainerRef} 
-            className="text-black text-base font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
-          >
-            {transcripts.map((line, idx) => (
+          <div className="text-gray-700 text-sm mb-2 font-semibold">Speech To text transcription</div>
+        <div 
+            
+           className="text-black text-base font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
+           ref={transcriptionContainerRef} 
+>
+            {audiodescription.map((line, idx) => (
               <div key={idx}>{line}</div>
-            ))}
-            {partial && <div className="italic text-gray-500"> {partial}</div>}
+           ))}
+          
           </div>
-
           </div>
 
         </div>
@@ -179,12 +248,12 @@ useEffect(() => {
           <div className="">
           <div className="text-gray-700 text-sm mb-2 font-semibold">{status}</div>
           <div 
-            ref={transcriptionContainerRef} 
+            
            className="text-black text-base font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
 >
-            {transcripts.map((line, idx) => (
+           {/*  {transcripts.map((line, idx) => (
               <div key={idx}>{line}</div>
-           ))}
+           ))} */}
             {partial && <div className="italic text-gray-500">{partial}</div>}
           </div>
 

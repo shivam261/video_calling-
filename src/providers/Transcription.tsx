@@ -51,7 +51,7 @@ export const TranscriptionProvider = ({ children }: { children: ReactNode }) => 
       };
     });
 
-    const response = await fetch("http://localhost:2700/offer", {
+    const response = await fetch(`http://${process.env.NEXT_PUBLIC_BASE_URL}:2700/offer`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(pc.localDescription),

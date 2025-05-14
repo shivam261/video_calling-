@@ -14,8 +14,13 @@ export const useSocket=()=>{
 }
 export const SocketProvider=({children}:{children:React.ReactNode})=>{
    const socket= useMemo(()=>{
+        // get domain name 
+        //const domainName = window.location.hostname;
+        // get domain name from window object
+        const domainName = window.location.hostname;
+        // if domain name is localhost, use localhost
 
-        return io(`http://localhost:8001`);
+        return io(`http://${process.env.NEXT_PUBLIC_BASE_URL}:8001`);
 
    },[])
     return(
