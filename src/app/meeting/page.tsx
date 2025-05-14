@@ -57,21 +57,37 @@ const [audiodescription, setAudiodescription] = useState<string[]>([]);
   })
     
   },[transcripts])
-  
+  const [sample,setSample] = useState<string>();
+  const [signal,setSignal] = useState<string[]>([]);
+  useEffect(()=>{
+    // add the sample to the signal array
+    if(sample){
+      setSignal((prev)=>[...prev,sample])
+    }
+
+
+  },[sample])
+  const handlePredictedTextReceived = useCallback((data: { text: string }) => {
+
+    console.log("Received predicted text:", data.text);
+    setSample(data.text);
+  }, [setSample]);
   useEffect(() => {
     socket.on("user-joined", handleNewUserJoined);
     socket.on("incoming-call", handleIncomingCall);
     socket.on("call-accepted", handleCallAccepted);
     socket.on("joined-room", () => console.log("joined-room"));
+    socket.on("predictedTextReceived",handlePredictedTextReceived);
    
     return () => {
       socket.off("user-joined", handleNewUserJoined);
       socket.off("incoming-call", handleIncomingCall);
       socket.off("call-accepted", handleCallAccepted);
       socket.off("joined-room");
+      socket.off("predictedTextReceived",handlePredictedTextReceived);
 
     };
-  }, [socket, handleIncomingCall, handleNewUserJoined, handleCallAccepted]);
+  }, [socket, handleIncomingCall, handleNewUserJoined, handleCallAccepted,handlePredictedTextReceived]);
 
   const getUserMediaStream = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -187,7 +203,7 @@ useEffect(() => {
         <Button onClick={handleJoinRoom} className="h-10 w-20 bg-blue-500 rounded-lg hover:bg-blue-600">Enter Room</Button>
       </div>
 
-      <h4>You are now connected to {remoteEmailId} saying {audiodescription}</h4>
+      <h4>You are now connected to {remoteEmailId} saying {audiodescription} he is saying {sample}</h4>
 
       <div className="relative w-full h-full bg-red-300">
         <div className="flex flex-row gap-4 absolute top-2 inset-x-[10%]">
@@ -220,7 +236,7 @@ useEffect(() => {
 </div>
         </div>
 
-        <div className="absolute bottom-2 inset-x-1/3">
+        <div className="fixed bottom-2 inset-x-1/3">
           <div className="flex flex-row w-full justify-between items-center space-x-4">
             <FloatingDock  />
           </div>
@@ -251,9 +267,9 @@ useEffect(() => {
             
            className="text-black text-base font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
 >
-           {/*  {transcripts.map((line, idx) => (
+            {signal.map((line, idx) => (
               <div key={idx}>{line}</div>
-           ))} */}
+           ))}
             {partial && <div className="italic text-gray-500">{partial}</div>}
           </div>
 
